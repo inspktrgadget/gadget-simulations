@@ -1,0 +1,22 @@
+# find Fmsy and other limit values based on stock parameters
+# must either source om_setup.R or source this file from there
+
+# these are still needed to compute F_msy
+bh_mu <- 4e8
+bh_lambda <- 1.067e08
+mat_alpha <- 0.2
+mat_l50 <- 64
+
+# make a list of arguments needed for f_msy and f_lim functions
+f_args <- list(fish_mort = seq(0, 2, 0.01), nat_mort = stock_m, ages = minage:maxage,
+               growth_params = list(linf = linf, k = k, t0 = t0),
+               lw_params = list(alpha = alpha, beta = beta),
+               rec_params = list(mu = bh_mu, lambda = bh_lambda),
+               mat_params = list(alpha = mat_alpha, l50 = mat_l50),
+               sel_params = exp_sel_params)
+
+# call f_msy and f_lim functions on above args list
+fmsy <- do.call(f_msy, f_args)
+f_limits <- do.call(f_lim, c(f_args, list(lim = 0.85)))
+f_low <- f_limits[1]
+f_high <- f_limits[2]

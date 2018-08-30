@@ -1,0 +1,21 @@
+#a	b	sex	length	length_type	r2	sd_b	sd_log_a	n	country	locality
+0.00530 	3.167 	  	unsexed 	10.5 - 117.5 	TL  	0.995  	  	  	101  		North Sea / (April) 1995-2006 
+0.00750 	3.061 	  	unsexed 	5.5 - 112.5 	TL  	0.988  	  	  	2351  		North Sea / (August) 1994-2006 
+0.00550 	3.171 	  	unsexed 	10.5 - 114.5 	TL  	0.996  	  	  	300  		North Sea / (December) 1992-2006 
+0.00600 	3.111 	  	unsexed 	10.5 - 119.5 	TL  	0.994  	  	  	3533  		North Sea / (February) 1994-2007 
+0.00730 	3.052 	  	unsexed 	7.5 - 126.5 	TL  	0.995  	  	  	5346  		North Sea / (January) 1994-2007 
+0.00740 	3.069 	  	unsexed 	4.5 - 118.5 	TL  	0.992  	  	  	2718  		North Sea / (July) 1994-2006 
+0.00810 	3.049 	  	unsexed 	3.5 - 99.5 	TL  	0.992  	  	  	1042  		North Sea / (June) 1994-2005 
+0.00530 	3.153 	  	unsexed 	8.5 - 113.5 	TL  	0.989  	  	  	382  		North Sea / (March) 1994-2005 
+0.00670 	3.087 	  	unsexed 	4.5 - 119.5 	TL  	0.992  	  	  	1386  		North Sea / (May) 1994-2006 
+0.00600 	3.112 	  	unsexed 	7.5 - 101.5 	TL  	0.994  	  	  	445  		North Sea / (November) 1996-2006 
+0.00800 	3.035 	  	unsexed 	5.5 - 120.5 	TL  	0.995  	  	  	1210  		North Sea / (October) 1995-2006 
+0.00500 	3.169 	  	unsexed 	7.5 - 126.5 	TL  	0.994  	  	  	9355  		North Sea / (Quarter 1) 1994-2007 
+0.00690 	3.086 	  	unsexed 	3.5 - 119.5 	TL  	0.992  	  	  	2529  		North Sea / (Quarter 2) 1994-2006 
+0.00720 	3.072 	  	unsexed 	4.5 - 118.5 	TL  	0.989  	  	  	5714  		North Sea / (Quarter 3) 1994-2006 
+0.00760 	3.049 	  	unsexed 	5.5 - 120.5 	TL  	0.995  	  	  	1737  		North Sea / (Quarter 4) 1994-2006 
+0.00620 	3.112 	  	unsexed 	9.5 - 111.5 	TL  	0.983  	  	  	645  		North Sea / (September) 1995-2006 
+0.00650 	3.098 	  	unsexed 	3.5 - 120.5 	TL  	0.993  	  	  	16665  		North Sea / 1994-2007 
+0.00620 	3.111 	  	Male 	8.5 - 118.5 	TL  	0.994  	  	  	7317  		North Sea / 1994-2009 
+0.00610 	3.114 	  	Female 	6.5 - 119.5 	TL  	0.994  	  	  	7370  		North Sea / 1994-2009 
+0.00587 	3.140 	  	mixed 	9.0 - 123.0 	TL  	0.995  	0.010 	0.0090 	6755  		North Sea, Sub-area IV, Division VIId and IIIa (Skagerrak)  
