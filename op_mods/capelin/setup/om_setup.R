@@ -7,6 +7,9 @@ paste_path <- function(...) {
 }
 om_dir <- "~/gadget/models/simulations/op_mods/capelin"
 
+# read in params
+source(paste_path(om_dir, "setup", "om_params.R"))
+
 #------------------------------
 # setup time and area
 st_year <- 1
@@ -14,75 +17,58 @@ end_year <- 120
 time <- make_gadget_timefile(st_year, end_year, "quarterly")
 area <-
     make_gadget_areafile(areas = 1, size = 1e6,
-                         temp_data = expand.grid(year = st_year:end_year, 
+                         temp_data = expand.grid(year = st_year:end_year,
                                                  step = 1:4,
-                                                 area = 1, 
+                                                 area = 1,
                                                  temp = 3))
 
 #------------------------------
 # setup the stock
 # setup basic stock information
-stockname <- "capelin"
-minage <- 1
-maxage <- 5
-minlength <- 1
-maxlength <- 25
-dl <- 1
-alpha <- 7.1e-06
-beta <- 3.15
 reflength <- seq(minlength, maxlength, dl)
 stock_info <-
-    list(stockname = stockname, livesonareas = 1, 
+    list(stockname = stockname, livesonareas = 1,
          minage = minage, maxage = maxage,
          minlength = minlength, maxlength = maxlength, dl = dl)
 
 # setup refweightfile
 stock_refwgt <-
     data.frame(len = reflength,
-               weight = alpha * reflength ^ beta)
+               weight = lw_alpha * reflength ^ lw_beta)
 
 # setup growth
-linf <- 20
-k <- 0.4
-t0 <- -0.33
 stock_growth <-
     list(growthfunction = "lengthvbsimple",
-         growthparameters = c(linf, k, alpha, beta),
-         beta = 10, 
+         growthparameters = c(linf, k, lw_alpha, lw_beta),
+         beta = 10,
 		 maxlengthgroupgrowth = 5)
 
-# setup naturalmortality
-stock_m <- c(rep(1, (maxage - minage)), 1.5)
+# setup naturalmortality - located in om_params.R
 
 # setup initial conditions
-init_sd <- c(seq(1,1.5,2), rep(2, 50))
 init_data <-
     normalparamfile(age = seq(minage, maxage, 1),
                     area = 1,
                     age.factor = 1.5e4 * exp(-cumsum(stock_m)),
                     area.factor = 1,
                     mean = vb_formula(stockname, minage:maxage,
-                                      params = list(linf = linf, 
-                                                    k = k, 
+                                      params = list(linf = linf,
+                                                    k = k,
                                                     t0 = t0)),
                     sd = init_sd[1:length(minage:maxage)],
-                    alpha = alpha,
-                    beta = beta)
+                    alpha = lw_alpha,
+                    beta = lw_beta)
 stock_initcond <- list(normalparamfile = init_data)
 
 # setup spawning
-bh_mu <- 6e08
-bh_lambda <- 5e06
-mat_alpha <- 2
-mat_l50 <- 12.5
 stock_spawnfile <-
     make_gadget_spawnfile(
         stockname = stockname,
         start_year = st_year,
         end_year = end_year,
-        proportionfunction = c("exponential", -mat_alpha, mat_l50),
+        proportionfunction = c("exponential", mat_alpha, mat_l50),
         recruitment = bev_holt_formula(stockname, params = c(bh_mu, bh_lambda)),
-        stockparameters = c(10, 2, alpha, beta)
+        stockparameters = c(vb(linf,k,t0,minage), minage_sd, lw_alpha, lw_beta)
 )
 
 # create gadget stockfile
@@ -91,40 +77,39 @@ capelin <-
                           refweightfile = stock_refwgt,
                           growth = stock_growth,
                           naturalmortality = stock_m,
-                          iseaten = 1,
+                          prey = 1,
                           initialconditions = stock_initcond,
                           spawning = stock_spawnfile)
 
 #-------------------------------
 # setup the fleets
-exp_sel_params <- list(alpha = 1, l50 = 16)
 source(paste_path(om_dir, "setup", "compute_f.R"))
-lin_flt_data <- 
-    expand.grid(year = (st_year + 40):end_year, 
-                steps = 1:4, 
-                area = 1, 
+lin_flt_data <-
+    expand.grid(year = (st_year + 40):end_year,
+                steps = 1:4,
+                area = 1,
                 fleetname = "lin") %>%
     arrange(year)
 
 # base argument list to make_gadget_fleet
-fleet_args <- 
+fleet_args <-
     list(type = "linearfleet",
-         suitability = make_exponentiall50_suit("lin", stockname, 
-												params = exp_sel_params))
+         suitability = make_gamma_suit("lin", stockname,
+												params = fleet_sel_params))
 
 # two-way trip scenario
-two_way_trip <- 
+two_way_trip <-
     lin_flt_data %>%
-    mutate(scaling = c(seq(0.01, f_high, 
+    mutate(scaling = c(seq(0.01, f_high,
                            length.out = nrow(lin_flt_data) * 0.6),
-                       seq(f_high, fmsy, 
+                       seq(f_high, fmsy,
                            length.out = nrow(lin_flt_data) * 0.4)))
 twt_args <- modifyList(fleet_args, list(amount = two_way_trip))
 twt_fleet <- make_gadget_fleet(lin = twt_args)
 
 # fish down scenario
-fish_down <- 
-    mutate(lin_flt_data, 
+fish_down <-
+    mutate(lin_flt_data,
            scaling = seq(0.01, f_high, length.out = nrow(lin_flt_data)))
 fish_down_args <- modifyList(fleet_args, list(amount = fish_down))
 fish_down_fleet <- make_gadget_fleet(lin = fish_down_args)
@@ -139,16 +124,16 @@ flat_msy_fleet <- make_gadget_fleet(lin = flat_msy_args)
 
 simulate_model <- function(fleet, scenario) {
     path <- paste_path(om_dir, scenario)
-    mod <- 
-        make_gadget_model(time = time, 
-                          area = area, 
-                          stock = capelin, 
+    mod <-
+        make_gadget_model(time = time,
+                          area = area,
+                          stock = capelin,
                           fleet = fleet)
     write_gadget_model(mod, path = path)
     stock_std <- get_stock_std(path = path)
-    ts_plot <- 
-        ggplot(data=filter(stock_std$capelin, step == 1, year >= 20), 
-               aes(x = year, y = number)) + 
+    ts_plot <-
+        ggplot(data=filter(stock_std$capelin, step == 1, year >= 20),
+               aes(x = year, y = number)) +
         geom_line() + facet_wrap(~age, scales = "free_y")
     return(ts_plot)
 }

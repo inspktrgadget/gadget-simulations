@@ -1,24 +1,12 @@
 # script to setup params for estimation models
 
-# get known params from operating model to use as a guide for bounds
-linf <- as.numeric(gr_params[1])
-k <- as.numeric(gr_params[2])
-#bh_mu <- 
-#    switch(stockname,
-#           cod = 4e08,
-#           flatfish = 4e08,
-#           capelin = 6e08)
-#bh_lam <- 
-#    switch(stockname,
-#           cod = 1.067e08,
-#           flatfish = 1.067e08,
-#           capelin = 5e06)
-#fleet_sel_alpha <- as.numeric(op_mod$fleets[[1]]$suitability[4])
-#fleet_sel_l50 <- as.numeric(op_mod$fleets[[1]]$suitability[5])
+# define fleet selectivity
+fleet_sel_alpha <- fleet_sel_params$alpha
+fleet_sel_l50 <- fleet_sel_params$l50
 
 # define functions for setting start values and bounds
-init_val <- function(val) {
-    return(val * runif(1, 0.9, 1.1))
+init_val <- function(val, scale = 0.1) {
+    return(val * runif(1, 1 - scale, 1 + scale))
 }
 
 low_bnd <- function(val, scalar = 0.1) {
@@ -51,14 +39,22 @@ params <-
                 low_bnd(bh_mu),
                 up_bnd(bh_mu)) %>%
     init_params(paste(stockname, "bh.lambda", sep = "."),
-                init_val(bh_lam),
-                low_bnd(bh_lam),
-                up_bnd(bh_lam)) %>%
-    init_params(paste(stockname, "lin.alpha", sep = "."),
+                init_val(bh_lambda),
+                low_bnd(bh_lambda),
+                up_bnd(bh_lambda)) %>%
+    init_params(paste(stockname, "mat.alpha", sep = "."),
+                init_val(mat_alpha),
+                low_bnd(mat_alpha),
+                up_bnd(mat_alpha)) %>%
+    init_params(paste(stockname, "mat.l50", sep = "."),
+                init_val(mat_l50),
+                low_bnd(mat_l50),
+                up_bnd(mat_l50)) %>%
+    init_params(paste(stockname, "comm.alpha", sep = "."),
                 init_val(fleet_sel_alpha),
                 low_bnd(fleet_sel_alpha),
                 up_bnd(fleet_sel_alpha)) %>%
-    init_params(paste(stockname, "lin.l50", sep = "."),
+    init_params(paste(stockname, "comm.l50", sep = "."),
                 init_val(fleet_sel_l50),
                 low_bnd(fleet_sel_l50),
                 up_bnd(fleet_sel_l50)) %>%
@@ -66,3 +62,21 @@ params <-
     init_params(paste(stockname, "spr.l50", sep = "."), 15, 1, 60) %>%
     init_params(paste(stockname, "aut.alpha", sep = "."), 0.1, 1e-05, 3) %>%
     init_params(paste(stockname, "aut.l50", sep = "."), 15, 1, 60)
+
+
+if (lik_type %in% c("mvn", "mvlog")) {
+    params <- 
+        params %>%
+        init_params(paste(stockname, "spr.ldist.sigma", sep = "."), 
+                    1, 1e-02, 20) %>%
+        init_params(paste(stockname, "aut.ldist.sigma", sep = "."), 
+                    1, 1e-02, 20) %>%
+        init_params(paste(stockname, "comm.ldist.sigma", sep = "."), 
+                    1, 1e-02, 20) %>%
+        init_params(paste(stockname, "spr.aldist.sigma", sep = "."), 
+                    1, 1e-02, 20) %>%
+        init_params(paste(stockname, "aut.aldist.sigma", sep = "."), 
+                    1, 1e-02, 20) %>%
+        init_params(paste(stockname, "comm.aldist.sigma", sep = "."), 
+                    1, 1e-02, 20)
+}

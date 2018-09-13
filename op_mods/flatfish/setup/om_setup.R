@@ -7,6 +7,9 @@ paste_path <- function(...) {
 }
 om_dir <- "~/gadget/models/simulations/op_mods/flatfish"
 
+# read in params
+source(paste_path(om_dir, "setup", "om_params.R"))
+
 
 #------------------------------
 # setup time and area
@@ -22,14 +25,6 @@ area <-
 #------------------------------
 # setup the stock
 # setup basic stock information
-stockname <- "flatfish"
-minage <- 1
-maxage <- 30
-minlength <- 1
-maxlength <- 100
-dl <- 1
-alpha <- 9.6e-06
-beta <- 3.0
 reflength <- seq(minlength, maxlength, dl)
 stock_info <-
     list(stockname = stockname, livesonareas = 1, 
@@ -39,23 +34,18 @@ stock_info <-
 # setup refweightfile
 stock_refwgt <-
     data.frame(len = reflength,
-               weight = alpha * reflength ^ beta)
+               weight = lw_alpha * reflength ^ lw_beta)
 
 # setup growth
-linf <- 55
-k <- 0.14
-t0 <- -1.3
 stock_growth <-
     list(growthfunction = "lengthvbsimple",
-         growthparameters = c(linf, k, alpha, beta),
+         growthparameters = c(linf, k, lw_alpha, lw_beta),
 		 beta = 30,
 		 maxlengthgroupgrowth = 15)
 
-# setup naturalmortality
-stock_m <- rep(0.1, length(minage:maxage))
+# setup naturalmortality - located in om_params.R
 
 # setup initial conditions
-init_sd <- c(c(2,4,6), rep(6, 50))
 init_data <-
     normalparamfile(age = minage:maxage,
                     area = 1,
@@ -66,23 +56,19 @@ init_data <-
                                                     k = k, 
                                                     t0 = t0)),
                     sd = init_sd[1:length(minage:maxage)],
-                    alpha = alpha,
-                    beta = beta)
+                    alpha = lw_alpha,
+                    beta = lw_beta)
 stock_initcond <- list(normalparamfile = init_data)
 
 # setup spawning
-bh_mu <- 4e8
-bh_lambda <- 1.067e08
-mat_alpha <- 0.25
-mat_l50 <- 30
 stock_spawnfile <-
     make_gadget_spawnfile(
         stockname = stockname,
         start_year = st_year,
         end_year = end_year,
-        proportionfunction = c("exponential", -mat_alpha, mat_l50),
+        proportionfunction = c("exponential", mat_alpha, mat_l50),
         recruitment = bev_holt_formula(stockname, params = c(bh_mu, bh_lambda)),
-        stockparameters = c(20, 2, alpha, beta)
+        stockparameters = c(vb(linf, k, t0, minage), minage_sd, lw_alpha, lw_beta)
 )
 
 # create gadget stockfile
@@ -99,7 +85,6 @@ flatfish <-
 # setup the fleets
 #-------------------------------
 # setup the fleets
-exp_sel_params <- list(alpha = 0.1, l50 = 45)
 source(paste_path(om_dir, "setup", "compute_f.R"))
 lin_flt_data <- 
     expand.grid(year = (st_year + 40):end_year, 
@@ -111,8 +96,8 @@ lin_flt_data <-
 # base argument list to make_gadget_fleet
 fleet_args <- 
     list(type = "linearfleet",
-         suitability = make_exponentiall50_suit("lin", stockname, 
-												params = exp_sel_params))
+         suitability = make_gamma_suit("lin", stockname, 
+												params = fleet_sel_params))
 
 # two-way trip scenario
 two_way_trip <- 

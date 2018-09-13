@@ -1,17 +1,27 @@
 # define survey selectivities and error
+source(paste_path(em_dir, "setup", "survey_params.R"))
 cod_survey_selectivity <-
-    logistic_selectivity(cod_lengrps, 0.25, 40, max_prop = 0.01)
+    logistic_selectivity(cod_lengrps,
+                         cod_survey_alpha,
+                         cod_survey_l50,
+                         max_prop = survey_sel_max)
 flatfish_survey_selectivity <-
-    logistic_selectivity(flatfish_lengrps, 0.25, 20, max_prop = 0.01)
+    logistic_selectivity(flatfish_lengrps,
+                         flatfish_survey_alpha,
+                         flatfish_survey_l50,
+                         max_prop = survey_sel_max)
 capelin_survey_selectivity <-
-    logistic_selectivity(capelin_lengrps, 2, 8, max_prop = 0.01)
-survey_error <- 0.2
-catch_error <- 0.2
+    logistic_selectivity(capelin_lengrps,
+                         capelin_survey_alpha,
+                         capelin_survey_l50,
+                         max_prop = survey_sel_max)
+
 
 
 # define the survey fleets
 survey_st_year <- 90
 survey_end_year <- 120
+comm_survey_st_year <- 60
 survey_data <- function(fleetname, step) {
     expand.grid(year = survey_st_year:survey_end_year,
                 steps = step,
