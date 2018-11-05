@@ -8,6 +8,7 @@ paste_path <- function(...) {
 om_dir <- "~/gadget/models/simulations/op_mods/cod"
 
 # read in parameters 
+sel_type <- "dome"
 source(paste_path(om_dir, "setup", "om_params.R"))
 
 #------------------------------
@@ -19,7 +20,8 @@ area <-
     make_gadget_areafile(areas = 1, size = 1e6,
                          temp_data = expand.grid(year = st_year:end_year, 
                                                  step = 1:4,
-                                                 area = 1, temp = 3))
+                                                 area = 1, temp = 3) %>%
+						             arrange(year, step, area, temp))
 #------------------------------
 # setup the stock
 # setup basic stock information
@@ -163,3 +165,9 @@ simulate_model <- function(fleet, scenario) {
 twt_mod <- simulate_model(twt_fleet, "two_way_trip")
 fd_mod <- simulate_model(fish_down_fleet, "fish_down")
 fmsy_mod <- simulate_model(flat_msy_fleet, "flat_msy")
+
+if (!interactive()) {
+	ggsave(file = paste_path(om_dir, "setup", "twt_mod.pdf"), twt_mod)
+	ggsave(file = paste_path(om_dir, "setup", "fd_mod.pdf"), fd_mod)
+	ggsave(file = paste_path(om_dir, "setup", "fmsy_mod.pdf"), fmsy_mod)
+}

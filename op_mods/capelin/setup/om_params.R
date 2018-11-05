@@ -30,8 +30,8 @@ init_sd <- c(c(minage_sd,1.5,2), rep(2, 50))
 #----------
 # spawning
 #----------
-bh_mu <- 6e08
-bh_lambda <- 5e06
+bh_mu <- 6e10
+bh_lambda <- 5e08
 mat_alpha <- -2
 mat_l50 <- 12.5
 
@@ -47,16 +47,22 @@ stock_m <- c(rep(1, (maxage - minage)), 1.5)
 # fishery
 #--------
 
-# asymptotic
-# comm_alpha <- 1
-# comm_l50 <- 16
-# fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
+if (sel_type == "log") {
+    # asymptotic
+    comm_alpha <- 1
+    comm_l50 <- 16
+    fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
+} else if (sel_type == "dome") {
+    # dome-shaped
+    comm_alpha <- 17
+    comm_beta <- 0.04
+    comm_gamma <- 35
+    fleet_sel_params <- 
+        list(alpha = comm_alpha, 
+             beta = comm_beta, 
+             gamma = comm_gamma)
+} else {
+    stop("You have to choose logistic or gamma selectivity or change your ",
+         "code in om_params.R")
+}
 
-# dome-shaped
-comm_alpha <- 17
-comm_beta <- 0.04
-comm_gamma <- 35
-fleet_sel_params <- 
-    list(alpha = comm_alpha, 
-         beta = comm_beta, 
-         gamma = comm_gamma)

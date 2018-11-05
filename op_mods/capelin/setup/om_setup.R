@@ -8,6 +8,7 @@ paste_path <- function(...) {
 om_dir <- "~/gadget/models/simulations/op_mods/capelin"
 
 # read in params
+sel_type <- "dome"
 source(paste_path(om_dir, "setup", "om_params.R"))
 
 #------------------------------
@@ -20,7 +21,8 @@ area <-
                          temp_data = expand.grid(year = st_year:end_year,
                                                  step = 1:4,
                                                  area = 1,
-                                                 temp = 3))
+                                                 temp = 3) %>%
+						             arrange(year, step, area, temp))
 
 #------------------------------
 # setup the stock

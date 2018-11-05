@@ -42,28 +42,31 @@ source(paste_path(em_dir, "setup", "setup_surveys.R"))
 
 # create scenarios
 data_scenario <- c("dr", "dp")
-likelihoods <- c("ss", "mltnom",
-                 "mvn", "mvlog")
-scenarios <- sprintf("%s_%s", sort(rep(data_scenario, 4)), likelihoods)
+likelihoods <- c("ss", "mltnom")
+sel_scenario <- c("log", "dome")
+scenarios <- 
+    expand.grid(data = data_scenario, lik = likelihoods, sel = sel_scenario) %>%
+    unite(scenarios) %>%
+    pull()
 
 
 # sample the OM outputs at each level and write to respective
 # directories and sub-directories
-sample_reps <- 3
+sample_reps <- 1
 ncores <- 5
 
 # here for temporary use while setting up
-x <- 1
-scenario <- scenarios[x]
-scenario_dir <- paste_path(em_dir, scenario)
-stock_std <- capelin_stock_stds
-stockname <- "capelin"
-om_dir <- capelin_om_dir
-fishing_scenario <- names(capelin_stock_stds)
-survey_fleets <- capelin_survey_fleets
-lengrps <- capelin_lengrps
-selectivity <- capelin_survey_selectivity
-survey_error <- catch_error <- 0.2
+# x <- 1
+# scenario <- scenarios[x]
+# scenario_dir <- paste_path(em_dir, scenario)
+# stock_std <- capelin_stock_stds
+# stockname <- "capelin"
+# om_dir <- capelin_om_dir
+# fishing_scenario <- names(capelin_stock_stds)
+# survey_fleets <- capelin_survey_fleets
+# lengrps <- capelin_lengrps
+# selectivity <- capelin_survey_selectivity
+# survey_error <- catch_error <- 0.2
 
 # define function to feed into lapply which makes dirs, sets em up,
 # samples gadget, and creates likelihood n number of times
@@ -74,7 +77,10 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
     scenario_dir <- paste_path(em_dir, scenario)
     check_dir_exists(paste_path(scenario_dir, stockname, fishing_scenario),
                      recursive = TRUE)
-    lik_type <- strsplit(scenario, split = "_")[[1]][2]
+    sc_split <- strsplit(scenario, split = "_")[[1]]
+    data_scen <- sc_split[1]
+    lik_type <- sc_split[2]
+    sel_type <- sc_split[3]
     
     #------------------------------------------
     # read in and write out the operating model
@@ -118,12 +124,10 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
                         beta = lw_beta)
 
     # read in original gadget spawnfile
-    base_om_dir <- paste_path("~/gadget/models/simulations/op_mods",
-                              stockname, "two_way_trip")
     spawning <- gadgetSim:::read_gadget_spawnfile(paste_path("Modelfiles",
                                                  paste(stockname,
                                                        "spawnfile", sep = ".")),
-                                      path = base_om_dir)
+                                      path = paste_path(om_dir, fishing_scenario))
 
     # get landings from operating model to use in estimation model fleet
     landings <-
@@ -135,7 +139,10 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
         filter(landed_biomass > 0)
     comm_fleet <-
         list(type = "totalfleet",
-             suitability = make_exponentiall50_suit("comm", stockname),
+             suitability = 
+                 switch(sel_type,
+                        log = make_exponentiall50_suit("comm", stockname),
+                        dome = make_gamma_suit("comm", stockname)),
              amount = landings)
 
     # update operating model to produce estimation model
@@ -171,19 +178,6 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
         # swap out the linearfleet for a totalfleet which uses landings data
         add_fleet(make_gadget_fleet(comm = comm_fleet)) %>%
         rm_fleet("lin")
-
-    # use if op_mod has variable recruitment
-    # est_mod$stocks[[grep("minlength",
-    #                      names(est_mod$stocks),
-    #                      fixed = TRUE)[3]]] <- NULL
-    # est_mod$stocks[[grep("maxlength",
-    #                      names(est_mod$stocks),
-    #                      fixed = TRUE)[4]]] <- NULL
-    # est_mod$stocks[[grep("dl", names(est_mod$stocks),
-    #                      fixed = TRUE)[3]]] <- NULL
-    # est_mod$stocks[[grep("numberfile", names(est_mod$stocks),
-    #                 fixed = TRUE)]] <- NULL
-    est_mod$stocks$doesstray <- NULL
 
     est_mod <- update_model(est_mod, "stocks", doesstray = 0)
 
@@ -242,7 +236,7 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
                                 error = catch_error)
 
     # define length samples based on data rich/data poor scenario
-    is_dr <- grepl("dr", strsplit(scenario, split = "_")[[1]][1])
+    is_dr <- data_scen == "dr"
     length_samples <- ifelse(is_dr, 1e4, 2e3)
     age_samples <- ifelse(is_dr, 1e3, 100)
 
@@ -250,9 +244,7 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
     lik_type <-
         switch(lik_type,
                ss = "sumofsquares",
-               mltnom = "multinomial",
-               mvn = "mvn",
-               mvlog = "mvlogistic")
+               mltnom = "multinomial")
 
     samples <-
         lapply(1:sample_reps, function(y) {
@@ -320,13 +312,11 @@ set_em_up <- function(x, stock_std, stockname, om_dir, scenario,
             write_gadget_file(likelihood, path = sub_dir)
         })
     optinfofile <- make_gadget_optinfofile(
-        simann = list(t=3e06),
-        hooke = "default",
-        bfgs = "default"
+        hooke = "default"
     )
-    write_gadget_file(make_gadget_optinfofile(),
-                      path = path)
+    write_gadget_file(optinfofile, path = path)
     file.copy(paste_path(em_dir, "setup", "run.R"), path)
+    file.copy(paste_path(em_dir, "setup", "slurm_run.sh"), path)
 }
 
 

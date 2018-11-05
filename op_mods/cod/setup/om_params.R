@@ -47,16 +47,21 @@ stock_m <- rep(0.2, length(minage:maxage))
 # fishery
 #--------
 
-# asymptotic
-# comm_alpha <- 0.1
-# comm_l50 <- 60
-# fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
-
-# dome-shaped
-comm_alpha <- 10
-comm_beta <- 0.16
-comm_gamma <- 65
-fleet_sel_params <- 
-    list(alpha = comm_alpha, 
-         beta = comm_beta, 
-         gamma = comm_gamma)
+if (sel_type == "log") {
+    # asymptotic
+    comm_alpha <- 0.1
+    comm_l50 <- 60
+    fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
+} else if (sel_type == "dome") {
+    # dome-shaped
+    comm_alpha <- 10
+    comm_beta <- 0.16
+    comm_gamma <- 65
+    fleet_sel_params <- 
+        list(alpha = comm_alpha, 
+             beta = comm_beta, 
+             gamma = comm_gamma)
+} else {
+    stop("You have to choose logistic or gamma selectivity or change your ",
+         "code in om_params.R")
+}
