@@ -1,9 +1,9 @@
-# parameter definitions for the cod operating model
+# parameter definitions for operating model
 
 #-------------------
 # general stock info
 #-------------------
-stockname <- "cod"
+stockname <- spp
 minage <- 1
 maxage <- 20
 minlength <- 1
@@ -18,6 +18,8 @@ dl <- 1
 linf <- 125
 k <- 0.15
 t0 <- -0.35
+gr_beta <- 30
+gr_mlgg <- 15
 
 # length-weight relationship
 lw_alpha <- 6.7e-06
@@ -30,7 +32,7 @@ init_sd <- c(seq(minage_sd, 10, length.out = 5), rep(10, 50))
 #----------
 # spawning
 #----------
-bh_mu <- 4e8
+bh_mu <- 3e8
 bh_lambda <- 1.067e08
 mat_alpha <- -0.2
 mat_l50 <- 64
@@ -50,13 +52,13 @@ stock_m <- rep(0.2, length(minage:maxage))
 if (sel_type == "log") {
     # asymptotic
     comm_alpha <- 0.1
-    comm_l50 <- 60
+    comm_l50 <- 45
     fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
 } else if (sel_type == "dome") {
     # dome-shaped
-    comm_alpha <- 10
-    comm_beta <- 0.16
-    comm_gamma <- 65
+    comm_alpha <- 6
+    comm_beta <- 0.33
+    comm_gamma <- 50
     fleet_sel_params <- 
         list(alpha = comm_alpha, 
              beta = comm_beta, 

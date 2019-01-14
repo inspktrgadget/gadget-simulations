@@ -3,11 +3,18 @@
 
 f_args <- list(fish_mort = seq(0, 2, 0.01), nat_mort = stock_m, 
                ages = minage:maxage,
+               growth_fun = vb,
                growth_params = list(linf = linf, k = k, t0 = t0),
                lw_params = list(alpha = lw_alpha, beta = lw_beta),
+               rec_fun = bev_holt,
                rec_params = list(mu = bh_mu, lambda = bh_lambda),
+               mat_fun = logistic_selectivity,
                mat_params = list(alpha = -mat_alpha, l50 = mat_l50),
-               sel_fun = gamma_selectivity,
+               sel_fun = if (sel_type == "log") {
+                 logistic_selectivity
+                 } else if (sel_type == "dome") {
+                   gamma_selectivity
+                 },
                sel_params = fleet_sel_params)
 
 fmsy <- do.call(f_msy, f_args)

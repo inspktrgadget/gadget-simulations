@@ -18,6 +18,8 @@ dl <- 1
 linf <- 55
 k <- 0.14
 t0 <- -1.3
+gr_beta <- 30
+gr_mlgg <- 15
 
 # length-weight relationship
 lw_alpha <- 9.6e-06
@@ -30,7 +32,7 @@ init_sd <- c(c(minage_sd,4,6), rep(6, 50))
 #----------
 # spawning
 #----------
-bh_mu <- 4e8
+bh_mu <- 2e8
 bh_lambda <- 1.067e08
 mat_alpha <- -0.25
 mat_l50 <- 30
@@ -49,14 +51,14 @@ stock_m <- rep(0.1, length(minage:maxage))
 
 if (sel_type == "log") {
     # asymptotic
-    comm_alpha <- 0.1
-    comm_l50 <- 45
+    comm_alpha <- 0.2
+    comm_l50 <- 30
     fleet_sel_params <- list(alpha = comm_alpha, l50 = comm_l50)
 } else if (sel_type == "dome") {
     # dome-shaped
-    comm_alpha <- 7
-    comm_beta <- 0.25
-    comm_gamma <- 50
+    comm_alpha <- 11
+    comm_beta <- 0.1
+    comm_gamma <- 45
     fleet_sel_params <- 
         list(alpha = comm_alpha, 
              beta = comm_beta, 
